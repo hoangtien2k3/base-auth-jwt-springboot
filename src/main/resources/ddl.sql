@@ -1,3 +1,6 @@
+-------------------------------------------
+--- USERS
+-------------------------------------------
 CREATE TABLE IF NOT EXISTS users
 (
     id                    BIGSERIAL PRIMARY KEY,
@@ -22,18 +25,8 @@ CREATE INDEX idx_users_email ON users (email);
 CREATE INDEX idx_users_email_verified ON users (is_email_verified);
 CREATE INDEX idx_users_created_at ON users (created_at);
 
-COMMENT ON TABLE users IS 'Stores user account information for authentication and authorization';
-COMMENT ON COLUMN users.id IS 'Primary key, auto-incrementing user ID';
-COMMENT ON COLUMN users.username IS 'Unique username for login';
-COMMENT ON COLUMN users.email IS 'Unique email address for login and communication';
-COMMENT ON COLUMN users.password IS 'Hashed password using BCrypt';
-COMMENT ON COLUMN users.is_email_verified IS 'Flag indicating if email has been verified';
-COMMENT ON COLUMN users.is_account_locked IS 'Flag indicating if account is locked due to security reasons';
-COMMENT ON COLUMN users.failed_login_attempts IS 'Counter for failed login attempts';
-COMMENT ON COLUMN users.last_failed_login_at IS 'Timestamp of last failed login attempt';
-
-
 -------------------------------------------
+--- ROLE
 -------------------------------------------
 CREATE TABLE IF NOT EXISTS roles
 (
@@ -82,11 +75,6 @@ CREATE INDEX idx_role_permissions_role_id ON role_permissions (role_id);
 CREATE INDEX idx_role_permissions_permission_id ON role_permissions (permission_id);
 CREATE INDEX idx_permissions_resource_action ON permissions (resource, action);
 
-COMMENT ON TABLE roles IS 'Stores role definitions for role-based access control';
-COMMENT ON TABLE permissions IS 'Stores permission definitions for fine-grained access control';
-COMMENT ON TABLE user_roles IS 'Junction table linking users to their assigned roles';
-COMMENT ON TABLE role_permissions IS 'Junction table linking roles to their permissions';
-
 INSERT INTO roles (name, description)
 VALUES ('ROLE_USER', 'Standard user role with basic permissions'),
        ('ROLE_ADMIN', 'Administrator role with elevated permissions'),
@@ -106,33 +94,26 @@ VALUES ('USER_READ', 'Read user information', 'USER', 'READ'),
 
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
-FROM roles r,
-     permissions p
-WHERE r.name = 'ROLE_USER'
-  AND p.name IN ('USER_READ');
+FROM roles r, permissions p
+WHERE r.name = 'ROLE_USER' AND p.name IN ('USER_READ');
 
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
-FROM roles r,
-     permissions p
-WHERE r.name = 'ROLE_MODERATOR'
-  AND p.name IN ('USER_READ', 'USER_WRITE');
+FROM roles r, permissions p
+WHERE r.name = 'ROLE_MODERATOR' AND p.name IN ('USER_READ', 'USER_WRITE');
 
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
-FROM roles r,
-     permissions p
-WHERE r.name = 'ROLE_ADMIN'
-  AND p.name IN ('USER_READ', 'USER_WRITE', 'USER_DELETE', 'ROLE_READ', 'ROLE_WRITE');
+FROM roles r, permissions p
+WHERE r.name = 'ROLE_ADMIN' AND p.name IN ('USER_READ', 'USER_WRITE', 'USER_DELETE', 'ROLE_READ', 'ROLE_WRITE');
 
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
-FROM roles r,
-     permissions p
+FROM roles r, permissions p
 WHERE r.name = 'ROLE_SUPER_ADMIN';
 
-
 -----------------------------------------------
+--- REFRESH TOKENS
 -----------------------------------------------
 CREATE TABLE IF NOT EXISTS refresh_tokens
 (
@@ -152,10 +133,3 @@ CREATE INDEX idx_refresh_tokens_token ON refresh_tokens (token);
 CREATE INDEX idx_refresh_tokens_user_id ON refresh_tokens (user_id);
 CREATE INDEX idx_refresh_tokens_expires_at ON refresh_tokens (expires_at);
 CREATE INDEX idx_refresh_tokens_is_revoked ON refresh_tokens (is_revoked);
-
-COMMENT ON TABLE refresh_tokens IS 'Stores refresh tokens for JWT token rotation strategy';
-COMMENT ON COLUMN refresh_tokens.token IS 'Hashed refresh token value';
-COMMENT ON COLUMN refresh_tokens.is_revoked IS 'Flag indicating if token has been revoked';
-COMMENT ON COLUMN refresh_tokens.device_info IS 'Information about the device that requested the token';
-COMMENT ON COLUMN refresh_tokens.ip_address IS 'IP address from which the token was requested';
-
