@@ -1,19 +1,18 @@
-# =============================================================================
-# APPLICATION CONFIGURATION
-# =============================================================================
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: on_param
+    include-exception: false
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+---
 spring:
   application:
     name: auth-jwt
 
-  # =============================================================================
-  # PROFILE CONFIGURATION
-  # =============================================================================
-  profiles:
-    active: ${SPRING_PROFILES_ACTIVE:dev}
-
-  # =============================================================================
-  # DATABASE CONFIGURATION
-  # =============================================================================
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:auth_jwt_db}
     username: ${DB_USERNAME:admin}
@@ -27,14 +26,11 @@ spring:
       max-lifetime: ${DB_MAX_LIFETIME:1800000}
       pool-name: AuthJwtHikariPool
 
-  # =============================================================================
-  # JPA/HIBERNATE CONFIGURATION
-  # =============================================================================
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: validate
-    show-sql: ${JPA_SHOW_SQL:false}
+    show-sql: ${JPA_SHOW_SQL:true}
     properties:
       hibernate:
         format_sql: true
@@ -45,9 +41,6 @@ spring:
         order_updates: true
     open-in-view: false
 
-  # =============================================================================
-  # FLYWAY MIGRATION CONFIGURATION
-  # =============================================================================
   flyway:
     enabled: true
     baseline-on-migrate: true
@@ -58,9 +51,6 @@ spring:
     placeholders:
       database: ${DB_NAME:auth_jwt_db}
 
-  # =============================================================================
-  # MAIL CONFIGURATION
-  # =============================================================================
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
@@ -78,9 +68,6 @@ spring:
           writetimeout: 5000
     default-encoding: UTF-8
 
-  # =============================================================================
-  # JACKSON CONFIGURATION
-  # =============================================================================
   jackson:
     serialization:
       write-dates-as-timestamps: false
@@ -89,24 +76,7 @@ spring:
       fail-on-unknown-properties: false
     default-property-inclusion: non_null
     time-zone: ${APP_TIMEZONE:Asia/Ho_Chi_Minh}
-
-# =============================================================================
-# SERVER CONFIGURATION
-# =============================================================================
-server:
-  port: ${SERVER_PORT:8080}
-  error:
-    include-message: always
-    include-binding-errors: always
-    include-stacktrace: on_param
-    include-exception: false
-  compression:
-    enabled: true
-    mime-types: application/json,application/xml,text/html,text/xml,text/plain
-
-# =============================================================================
-# SPRINGDOC / SWAGGER CONFIGURATION
-# =============================================================================
+---
 springdoc:
   api-docs:
     path: /v3/api-docs
@@ -119,10 +89,7 @@ springdoc:
     display-request-duration: true
     doc-expansion: none
   show-actuator: false
-
-# =============================================================================
-# JWT CONFIGURATION
-# =============================================================================
+---
 jwt:
   secret: ${JWT_SECRET:bvUPO4LP4QOLQhldziMpTRkoQOeT/kz6NjPUAoCQPHgU3MAZjU+BrFJe3wvVm7yUhiPgXO439/9zzVo1L4g+xQ==}
   access-token:
@@ -130,10 +97,7 @@ jwt:
   refresh-token:
     expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000}  # 7 days in milliseconds
   issuer: ${JWT_ISSUER:auth-jwt-service}
-
-# =============================================================================
-# APPLICATION CUSTOM CONFIGURATION
-# =============================================================================
+---
 app:
   name: Authentication & Authorization Service
   version: 1.0.0
@@ -177,37 +141,3 @@ app:
     email:
       max-attempts: ${RATE_LIMIT_EMAIL_MAX_ATTEMPTS:3}
       duration: ${RATE_LIMIT_EMAIL_DURATION:3600000}  # 1 hour in milliseconds
-
----
-# =============================================================================
-# DEVELOPMENT PROFILE
-# =============================================================================
-spring:
-  config:
-    activate:
-      on-profile: dev
-  jpa:
-    show-sql: true
-
-logging:
-  level:
-    root: INFO
-    com.jwt.auth: DEBUG
-    org.springframework.security: DEBUG
-
----
-# =============================================================================
-# PRODUCTION PROFILE
-# =============================================================================
-spring:
-  config:
-    activate:
-      on-profile: prod
-  jpa:
-    show-sql: false
-
-logging:
-  level:
-    root: WARN
-    com.jwt.auth: INFO
-    org.springframework.security: WARN

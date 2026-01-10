@@ -9,13 +9,10 @@ import com.jwt.auth.auth_jwt.dto.response.JwtAuthenticationResponse;
 import com.jwt.auth.auth_jwt.dto.response.TokenRefreshResponse;
 import com.jwt.auth.auth_jwt.entity.User;
 import com.jwt.auth.auth_jwt.service.AuthService;
-import com.jwt.auth.auth_jwt.utils.Constants;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -43,11 +40,9 @@ public class AuthController {
     @Operation(summary = "Register user", description = "Register a new user")
     public ResponseEntity<ApiResponse> registerUser(@Valid @RequestBody SignUpRequest signUpRequest) {
         User user = authService.register(signUpRequest);
-
         URI location = ServletUriComponentsBuilder
                 .fromCurrentContextPath().path("/api/users/{username}")
                 .buildAndExpand(user.getUsername()).toUri();
-
         return ResponseEntity.created(location)
                 .body(new ApiResponse(true, "User registered successfully"));
     }
