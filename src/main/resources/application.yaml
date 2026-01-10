@@ -72,10 +72,6 @@ jwt:
   issuer: ${JWT_ISSUER:auth-jwt-service}
 ---
 app:
-  name: Authentication & Authorization Service
-  version: 1.0.0
-  description: Professional JWT-based Authentication System
-
   security:
     allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000,http://localhost:4200}
     public-endpoints:
