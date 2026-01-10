@@ -67,12 +67,14 @@ app:
   security:
     allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000,http://localhost:4200}
     public-endpoints:
+      - /swagger-ui/**
+      - /swagger-ui.html
+      - /swagger-ui/index.html
+      - /v3/api-docs/**
+      - /actuator/health
       - /api/v1/auth/login
       - /api/v1/auth/register
       - /api/v1/auth/refresh-token
       - /api/v1/auth/forgot-password
       - /api/v1/auth/reset-password
       - /api/v1/auth/verify-email
-      - /swagger-ui/**
-      - /v3/api-docs/**
-      - /actuator/health
