@@ -1,52 +1,78 @@
-# Auth JWT Project
+# Auth JWT Spring Boot
 
-## 1. Giới thiệu
-Dự án Authentication & Authorization chuyên nghiệp sử dụng Spring Boot 3, Spring Security 6, JWT, PostgreSQL.
+A professional authentication and authorization system built with Spring Boot 3, Spring Security 6, and JWT tokens.
 
-## 2. Công nghệ sử dụng
-- Java 17
-- Spring Boot 3.2.1
-- Spring Security 6
-- JWT (Json Web Token)
-- PostgreSQL
-- Flyway Migration
-- Swagger UI / OpenAPI 3
+## Features
 
-## 3. Cài đặt & Chạy
+- **JWT Authentication**: Secure token-based authentication with access and refresh tokens
+- **Role-Based Access Control (RBAC)**: Flexible permission system with roles and permissions
+- **User Management**: Registration, login, logout, and token refresh
+- **Security**: Password encryption, account locking, email verification
+- **Database**: PostgreSQL with automatic schema migration via Flyway
+- **API Documentation**: Interactive Swagger UI for testing endpoints
 
-### Bước 1: Cấu hình Database
-Tạo database PostgreSQL tên là `auth_jwt_db`:
-```sql
-CREATE DATABASE auth_jwt_db;
+## Quick Start
+
+### Setup
+
+1. **Create Database**
+   ```sql
+   CREATE DATABASE auth_jwt_db;
+   ```
+
+2. **Configure Database** (Optional)
+   
+   Update `src/main/resources/application.yaml` if your credentials differ from defaults:
+   ```yaml
+   spring:
+     datasource:
+       username: admin
+       password: admin
+   ```
+
+3. **Run Application**
+   ```bash
+   ./gradlew bootRun
+   ```
+
+4. **Access API Documentation**
+   
+   Open browser: `http://localhost:8080/swagger-ui.html`
+
+## API Endpoints
+
+### Authentication
+- `POST /api/v1/auth/register` - Register new user
+- `POST /api/v1/auth/login` - Login and get tokens
+- `POST /api/v1/auth/refresh-token` - Refresh access token
+- `POST /api/v1/auth/logout` - Logout and revoke refresh token
+
+## Project Structure
+
+```
+src/main/java/com/jwt/auth/auth_jwt/
+├── config/          # Security, Swagger, and app configuration
+├── controller/      # REST API endpoints
+├── dto/            # Request/Response objects
+├── entity/         # JPA entities (User, Role, Permission, RefreshToken)
+├── exception/      # Global exception handling
+├── repository/     # Database access layer
+├── security/       # JWT filters, providers, and user details
+├── service/        # Business logic
+└── utils/          # Utility classes
 ```
 
-Cấu hình username/password trong `src/main/resources/application.yaml` nếu khác mặc định (`postgres`/`postgres`).
+## Configuration
 
-### Bước 2: Chạy ứng dụng
-Mở terminal tại thư mục gốc dự án:
-```bash
-./gradlew bootRun
-```
+Key configurations in `application.yaml`:
 
-### Bước 3: Truy cập API Documentation
-Mở trình duyệt và truy cập:
-`http://localhost:8080/swagger-ui.html`
+- **JWT Secret**: Configurable via `JWT_SECRET` environment variable
+- **Token Expiration**: 
+  - Access Token: 15 minutes (default)
+  - Refresh Token: 7 days (default)
+- **Database**: PostgreSQL connection settings
+- **CORS**: Allowed origins for cross-origin requests
 
-## 4. Account Default
-Dữ liệu Roles và Permissions sẽ tự động được tạo khi ứng dụng khởi chạy lần đầu (nhờ Flyway).
+## License
 
-## 5. Testing Flow
-1. **Đăng ký**: `POST /api/v1/auth/register`
-2. **Đăng nhập**: `POST /api/v1/auth/login` -> Nhận AccessToken & RefreshToken
-3. **Sử dụng Token**: Copy AccessToken -> Bấm nút **Authorize** trên Swagger -> Paste Token
-4. **Test Quyền**: Gọi các API trong `Test Controller`
-
-## 6. Project Structure
-- `config`: Cấu hình Security, Swagger, App beans.
-- `controller`: API Endpoints.
-- `dto`: Request/Response objects.
-- `entity`: Database models.
-- `repository`: Database access.
-- `security`: JWT filter, provider, UserDetails custom.
-- `service`: Business logic.
-- `exception`: Global exception handling.
+This project is open source and available for educational purposes.
