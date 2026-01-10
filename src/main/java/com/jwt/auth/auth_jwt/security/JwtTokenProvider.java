@@ -1,43 +1,37 @@
 package com.jwt.auth.auth_jwt.security;
 
+import com.jwt.auth.auth_jwt.config.JwtProperties;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class JwtTokenProvider {
 
-    @Value("${jwt.secret}")
-    private String jwtSecret;
-
-    @Value("${jwt.access-token.expiration}")
-    private long jwtExpirationInMs;
-
-    @Value("${jwt.refresh-token.expiration}")
-    private long refreshExpirationInMs;
+    private final JwtProperties jwtProperties;
 
     private SecretKey getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
+        byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.getSecret());
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
     public String generateToken(Authentication authentication) {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
-
+        Date expiryDate = new Date(now.getTime() + jwtProperties.getAccessToken().getExpiration());
         return Jwts.builder()
                 .subject(Long.toString(userPrincipal.getId()))
+                .issuer(jwtProperties.getIssuer())
                 .issuedAt(new Date())
                 .expiration(expiryDate)
                 .signWith(getSigningKey(), Jwts.SIG.HS512)
@@ -46,10 +40,10 @@ public class JwtTokenProvider {
 
     public String generateTokenFromUserId(Long userId) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
-
+        Date expiryDate = new Date(now.getTime() + jwtProperties.getAccessToken().getExpiration());
         return Jwts.builder()
                 .subject(Long.toString(userId))
+                .issuer(jwtProperties.getIssuer())
                 .issuedAt(new Date())
                 .expiration(expiryDate)
                 .signWith(getSigningKey(), Jwts.SIG.HS512)
@@ -58,10 +52,10 @@ public class JwtTokenProvider {
 
     public String generateRefreshToken(Long userId) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + refreshExpirationInMs);
-
+        Date expiryDate = new Date(now.getTime() + jwtProperties.getRefreshToken().getExpiration());
         return Jwts.builder()
                 .subject(Long.toString(userId))
+                .issuer(jwtProperties.getIssuer())
                 .issuedAt(new Date())
                 .expiration(expiryDate)
                 .signWith(getSigningKey(), Jwts.SIG.HS512)
@@ -74,7 +68,6 @@ public class JwtTokenProvider {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
-
         return Long.parseLong(claims.getSubject());
     }
 
@@ -97,9 +90,5 @@ public class JwtTokenProvider {
             log.error("JWT claims string is empty");
         }
         return false;
-    }
-
-    public long getExpirationTime() {
-        return jwtExpirationInMs;
     }
 }

@@ -22,7 +22,6 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseGet(() -> userRepository.findByEmail(usernameOrEmail)
                         .orElseThrow(() -> new UsernameNotFoundException(
                                 "User not found with username or email : " + usernameOrEmail)));
-
         return UserPrincipal.create(user);
     }
 
@@ -30,7 +29,6 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserById(Long id) {
         User user = userRepository.findById(id).orElseThrow(
                 () -> new UsernameNotFoundException("User not found with id : " + id));
-
         return UserPrincipal.create(user);
     }
 }

@@ -32,14 +32,6 @@ public class UserPrincipal implements UserDetails {
         List<GrantedAuthority> authorities = user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority(role.getName()))
                 .collect(Collectors.toList());
-
-        // Also add permissions as authorities if needed
-        // user.getRoles().forEach(role ->
-        // role.getPermissions().forEach(permission ->
-        // authorities.add(new SimpleGrantedAuthority(permission.getName()))
-        // )
-        // );
-
         return UserPrincipal.builder()
                 .id(user.getId())
                 .username(user.getUsername())
@@ -82,6 +74,6 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return isEmailVerified; // Or use a separate enabled flag
+        return isEmailVerified;
     }
 }

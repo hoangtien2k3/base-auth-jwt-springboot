@@ -1,7 +1,6 @@
 package com.jwt.auth.auth_jwt.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +20,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request,
             HttpServletResponse response,
-            AuthenticationException authException) throws IOException, ServletException {
+            AuthenticationException authException) throws IOException {
         log.error("Responding with unauthorized error. Message - {}", authException.getMessage());
 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
