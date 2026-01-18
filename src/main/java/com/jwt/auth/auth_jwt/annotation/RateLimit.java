@@ -5,17 +5,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * Rate Limit Annotation
- * 
- * Apply this annotation to controller methods to enable rate limiting
- * 
- * Example:
- * 
- * @RateLimit(key = "login", capacity = 5, duration = 60)
- *                public ResponseEntity<?> login(@RequestBody LoginRequest
- *                request) { ... }
- */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RateLimit {

@@ -1,15 +1,10 @@
 package com.jwt.auth.auth_jwt.service;
 
-/**
- * Rate Limiter Service Interface
- * 
- * Implements Token Bucket algorithm using Redis
- */
 public interface RateLimiterService {
 
     /**
      * Check if request is allowed under rate limit
-     * 
+     *
      * @param key      Unique identifier for the rate limit (e.g., "login:user123")
      * @param capacity Maximum number of requests allowed
      * @param duration Time window in seconds
@@ -19,7 +14,7 @@ public interface RateLimiterService {
 
     /**
      * Get remaining requests for a key
-     * 
+     *
      * @param key Unique identifier
      * @return Number of remaining requests
      */
@@ -27,7 +22,7 @@ public interface RateLimiterService {
 
     /**
      * Get time until rate limit reset
-     * 
+     *
      * @param key Unique identifier
      * @return Seconds until reset
      */
@@ -35,7 +30,7 @@ public interface RateLimiterService {
 
     /**
      * Reset rate limit for a key
-     * 
+     *
      * @param key Unique identifier
      */
     void reset(String key);
