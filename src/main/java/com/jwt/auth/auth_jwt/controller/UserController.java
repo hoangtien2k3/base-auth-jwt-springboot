@@ -23,10 +23,10 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-//    @PreAuthorize("hasRole('ADMIN')")
-//    @PreAuthorize("hasRole('USER') and hasRole('ADMIN')")
-//    @PreAuthorize("!hasRole('USER')")
-    @PreAuthorize("hasRole('ADMIN')")
+    // @PreAuthorize("hasRole('ADMIN')")
+    // @PreAuthorize("hasRole('USER') and hasRole('ADMIN')")
+    // @PreAuthorize("!hasRole('USER')")
+    // @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get all users", description = "Retrieve all users with roles and permissions (Admin only)")
     public ResponseEntity<ApiBaseResponse<List<UserResponse>>> getAllUsers() {
         return ResponseEntity.ok(ApiBaseResponse.success(userService.getAllUsers()));

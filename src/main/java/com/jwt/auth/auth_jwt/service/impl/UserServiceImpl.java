@@ -6,6 +6,7 @@ import com.jwt.auth.auth_jwt.entity.Permission;
 import com.jwt.auth.auth_jwt.repository.UserRepository;
 import com.jwt.auth.auth_jwt.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "users", key = "'all_users'")
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(user -> {
