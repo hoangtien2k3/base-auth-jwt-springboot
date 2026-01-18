@@ -1,5 +1,6 @@
 package com.jwt.auth.auth_jwt.controller;
 
+import com.jwt.auth.auth_jwt.annotation.RateLimit;
 import com.jwt.auth.auth_jwt.dto.request.LogOutRequest;
 import com.jwt.auth.auth_jwt.dto.request.LoginRequest;
 import com.jwt.auth.auth_jwt.dto.request.SignUpRequest;
@@ -32,6 +33,7 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "Login user", description = "Authenticate user and return value token")
+    @RateLimit(key = "login", capacity = 5, duration = 60, message = "Too many login attempts. Please try again after 1 minute.")
     public ResponseEntity<ApiBaseResponse<JwtAuthenticationResponse>> authenticateUser(
             @Valid @RequestBody LoginRequest loginRequest) {
         return ResponseEntity.ok(ApiBaseResponse.success(authService.login(loginRequest)));
@@ -39,6 +41,7 @@ public class AuthController {
 
     @PostMapping("/register")
     @Operation(summary = "Register user", description = "Register a new user")
+    @RateLimit(key = "register", capacity = 3, duration = 300, message = "Too many registration attempts. Please try again after 5 minutes.")
     public ResponseEntity<ApiBaseResponse<Void>> registerUser(@Valid @RequestBody SignUpRequest signUpRequest) {
         User user = authService.register(signUpRequest);
         URI location = ServletUriComponentsBuilder
@@ -50,6 +53,7 @@ public class AuthController {
 
     @PostMapping("/refresh-token")
     @Operation(summary = "Refresh token", description = "Get new access token using refresh token")
+    @RateLimit(key = "refresh-token", capacity = 10, duration = 60, message = "Too many token refresh attempts. Please try again later.")
     public ResponseEntity<ApiBaseResponse<TokenRefreshResponse>> refreshToken(
             @Valid @RequestBody TokenRefreshRequest request) {
         return ResponseEntity.ok(ApiBaseResponse.success(authService.refreshToken(request)));
@@ -57,6 +61,7 @@ public class AuthController {
 
     @PostMapping("/logout")
     @Operation(summary = "Logout user", description = "Revoke refresh token")
+    @RateLimit(key = "logout", capacity = 10, duration = 60, message = "Too many logout attempts. Please try again later.")
     public ResponseEntity<ApiBaseResponse<Void>> logout(@Valid @RequestBody LogOutRequest logOutRequest) {
         authService.logout(logOutRequest.getRefreshToken());
         return ResponseEntity.ok(ApiBaseResponse.success(null, "Log out successful"));

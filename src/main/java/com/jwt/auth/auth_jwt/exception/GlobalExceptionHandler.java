@@ -38,6 +38,19 @@ public class GlobalExceptionHandler {
         return errors;
     }
 
+    @ExceptionHandler(RateLimitExceededException.class)
+    @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
+    public ApiResponse handleRateLimitExceededException(RateLimitExceededException ex,
+            jakarta.servlet.http.HttpServletResponse response) {
+        // Add Retry-After header
+        response.setHeader("Retry-After", String.valueOf(ex.getRetryAfter()));
+        response.setHeader("X-RateLimit-Limit", "See API documentation");
+        response.setHeader("X-RateLimit-Remaining", "0");
+        response.setHeader("X-RateLimit-Reset", String.valueOf(System.currentTimeMillis() / 1000 + ex.getRetryAfter()));
+
+        return new ApiResponse(false, ex.getMessage());
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiResponse handleGlobalException(Exception ex) {
