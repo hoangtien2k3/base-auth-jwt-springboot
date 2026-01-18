@@ -112,15 +112,3 @@ app:
       permission: ${CACHE_TTL_PERMISSION:3600000}  # 1 hour
       refresh-token: ${CACHE_TTL_REFRESH_TOKEN:604800000}  # 7 days
     enabled: ${CACHE_ENABLED:true}
-
-  rate-limit:
-    enabled: ${RATE_LIMIT_ENABLED:true}
-    login:
-      capacity: ${RATE_LIMIT_LOGIN_CAPACITY:5}      # 5 requests
-      duration: ${RATE_LIMIT_LOGIN_DURATION:60}     # per 60 seconds
-    register:
-      capacity: ${RATE_LIMIT_REGISTER_CAPACITY:3}   # 3 requests
-      duration: ${RATE_LIMIT_REGISTER_DURATION:300} # per 5 minutes
-    refresh-token:
-      capacity: ${RATE_LIMIT_REFRESH_CAPACITY:10}   # 10 requests
-      duration: ${RATE_LIMIT_REFRESH_DURATION:60}   # per 60 seconds
