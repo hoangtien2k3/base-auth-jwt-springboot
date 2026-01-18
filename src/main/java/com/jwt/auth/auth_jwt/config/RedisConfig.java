@@ -1,8 +1,9 @@
 package com.jwt.auth.auth_jwt.config;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +15,7 @@ import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -24,12 +25,15 @@ import java.util.Map;
 
 /**
  * Redis Configuration
- * 
+ * <p>
  * This configuration class sets up Redis for:
  * 1. Caching (User, Role, Permission data)
  * 2. Session Management
  * 3. Rate Limiting
  * 4. Refresh Token Storage
+ * <p>
+ * IMPORTANT: This uses a separate ObjectMapper instance that does NOT affect
+ * HTTP serialization
  */
 @Slf4j
 @Configuration
@@ -40,52 +44,30 @@ public class RedisConfig {
     private final CacheProperties cacheProperties;
 
     /**
-     * Configure ObjectMapper for Redis JSON serialization
-     * Supports Java 8 time types and polymorphic types
-     */
-    @Bean
-    public ObjectMapper redisObjectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.activateDefaultTyping(
-                LaissezFaireSubTypeValidator.instance,
-                ObjectMapper.DefaultTyping.NON_FINAL,
-                JsonTypeInfo.As.PROPERTY);
-        return mapper;
-    }
-
-    /**
      * Configure RedisTemplate for general Redis operations
-     * Uses String for keys and JSON for values
+     * Uses String serializer for both keys and values to avoid ObjectMapper
+     * conflicts
      */
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
 
-        // Use String serializer for keys
+        // Use String serializer for everything
         StringRedisSerializer stringSerializer = new StringRedisSerializer();
         template.setKeySerializer(stringSerializer);
+        template.setValueSerializer(stringSerializer);
         template.setHashKeySerializer(stringSerializer);
-
-        // Use JSON serializer for values
-        GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer(redisObjectMapper());
-        template.setValueSerializer(jsonSerializer);
-        template.setHashValueSerializer(jsonSerializer);
+        template.setHashValueSerializer(stringSerializer);
 
         template.afterPropertiesSet();
-        log.info("RedisTemplate configured successfully");
+        log.info("RedisTemplate configured with StringRedisSerializer");
         return template;
     }
 
     /**
      * Configure CacheManager with different TTL for different cache types
-     * 
-     * Cache Names:
-     * - users: User entity cache (30 minutes)
-     * - roles: Role entity cache (1 hour)
-     * - permissions: Permission entity cache (1 hour)
-     * - refreshTokens: Refresh token cache (7 days)
+     * Uses a completely isolated ObjectMapper that won't affect HTTP serialization
      */
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
@@ -93,13 +75,24 @@ public class RedisConfig {
             log.warn("Cache is disabled in configuration");
         }
 
+        // Create a completely isolated ObjectMapper for Redis cache ONLY
+        ObjectMapper cacheObjectMapper = new ObjectMapper();
+        cacheObjectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+        cacheObjectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        cacheObjectMapper.registerModule(new JavaTimeModule());
+
+        // Create Jackson serializer with the isolated ObjectMapper (using constructor
+        // to avoid deprecation)
+        Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer<>(
+                cacheObjectMapper, Object.class);
+
         // Default cache configuration
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofHours(1))
                 .serializeKeysWith(RedisSerializationContext.SerializationPair
                         .fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair
-                        .fromSerializer(new GenericJackson2JsonRedisSerializer(redisObjectMapper())))
+                        .fromSerializer(jackson2JsonRedisSerializer))
                 .disableCachingNullValues();
 
         // Specific cache configurations with custom TTL
@@ -117,7 +110,7 @@ public class RedisConfig {
         cacheConfigurations.put("refreshTokens", defaultConfig
                 .entryTtl(Duration.ofMillis(cacheProperties.getTtl().getRefreshToken())));
 
-        log.info("Redis CacheManager configured with custom TTL settings");
+        log.info("Redis CacheManager configured with isolated ObjectMapper");
         log.info("Cache TTL - Users: {}ms, Roles: {}ms, Permissions: {}ms, RefreshTokens: {}ms",
                 cacheProperties.getTtl().getUser(),
                 cacheProperties.getTtl().getRole(),
