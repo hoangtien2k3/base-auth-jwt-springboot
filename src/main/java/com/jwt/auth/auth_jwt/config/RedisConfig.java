@@ -23,18 +23,6 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Redis Configuration
- * <p>
- * This configuration class sets up Redis for:
- * 1. Caching (User, Role, Permission data)
- * 2. Session Management
- * 3. Rate Limiting
- * 4. Refresh Token Storage
- * <p>
- * IMPORTANT: This uses a separate ObjectMapper instance that does NOT affect
- * HTTP serialization
- */
 @Slf4j
 @Configuration
 @EnableCaching
@@ -53,22 +41,15 @@ public class RedisConfig {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
 
-        // Use String serializer for everything
         StringRedisSerializer stringSerializer = new StringRedisSerializer();
         template.setKeySerializer(stringSerializer);
         template.setValueSerializer(stringSerializer);
         template.setHashKeySerializer(stringSerializer);
         template.setHashValueSerializer(stringSerializer);
-
         template.afterPropertiesSet();
-        log.info("RedisTemplate configured with StringRedisSerializer");
         return template;
     }
 
-    /**
-     * Configure CacheManager with different TTL for different cache types
-     * Uses a completely isolated ObjectMapper that won't affect HTTP serialization
-     */
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
         if (!cacheProperties.isEnabled()) {
@@ -82,33 +63,22 @@ public class RedisConfig {
         cacheObjectMapper.registerModule(new JavaTimeModule());
 
         // Create Jackson serializer with the isolated ObjectMapper (using constructor
-        // to avoid deprecation)
-        Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer<>(
-                cacheObjectMapper, Object.class);
+        Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer<>(cacheObjectMapper, Object.class);
 
         // Default cache configuration
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofHours(1))
-                .serializeKeysWith(RedisSerializationContext.SerializationPair
-                        .fromSerializer(new StringRedisSerializer()))
-                .serializeValuesWith(RedisSerializationContext.SerializationPair
-                        .fromSerializer(jackson2JsonRedisSerializer))
+                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jackson2JsonRedisSerializer))
                 .disableCachingNullValues();
 
         // Specific cache configurations with custom TTL
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
 
-        cacheConfigurations.put("users", defaultConfig
-                .entryTtl(Duration.ofMillis(cacheProperties.getTtl().getUser())));
-
-        cacheConfigurations.put("roles", defaultConfig
-                .entryTtl(Duration.ofMillis(cacheProperties.getTtl().getRole())));
-
-        cacheConfigurations.put("permissions", defaultConfig
-                .entryTtl(Duration.ofMillis(cacheProperties.getTtl().getPermission())));
-
-        cacheConfigurations.put("refreshTokens", defaultConfig
-                .entryTtl(Duration.ofMillis(cacheProperties.getTtl().getRefreshToken())));
+        cacheConfigurations.put("users", defaultConfig.entryTtl(Duration.ofMillis(cacheProperties.getTtl().getUser())));
+        cacheConfigurations.put("roles", defaultConfig.entryTtl(Duration.ofMillis(cacheProperties.getTtl().getRole())));
+        cacheConfigurations.put("permissions", defaultConfig.entryTtl(Duration.ofMillis(cacheProperties.getTtl().getPermission())));
+        cacheConfigurations.put("refreshTokens", defaultConfig.entryTtl(Duration.ofMillis(cacheProperties.getTtl().getRefreshToken())));
 
         log.info("Redis CacheManager configured with isolated ObjectMapper");
         log.info("Cache TTL - Users: {}ms, Roles: {}ms, Permissions: {}ms, RefreshTokens: {}ms",
