@@ -59,9 +59,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(appProperties.getSecurity().getPublicEndpoints().toArray(new String[0]))
                         .permitAll()
-                        .anyRequest().authenticated());
-        httpSecurity.authenticationProvider(authenticationProvider());
-        httpSecurity.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                        .anyRequest().authenticated())
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return httpSecurity.build();
     }
 
