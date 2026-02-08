@@ -63,6 +63,21 @@ jwt:
     expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000}  # 7 days in milliseconds
   issuer: ${JWT_ISSUER:auth-jwt-service}
 ---
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    db:
+      enabled: true
+---
 app:
   security:
     allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000,http://localhost:4200}
