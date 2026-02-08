@@ -1,9 +1,4 @@
 # ===================================================================
-# MULTI-STAGE DOCKERFILE FOR SPRING BOOT APPLICATION
-# Optimized for production with minimal image size and fast builds
-# ===================================================================
-
-# ===================================================================
 # STAGE 1: BUILD STAGE
 # Uses Gradle wrapper to build the application
 # ===================================================================
